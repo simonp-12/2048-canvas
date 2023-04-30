@@ -33,25 +33,28 @@ let num_colors = {
     4096: "white",
     8192: "white"
 }
+let curr_board,
+    transformed_board;
 
 function init() {
-    setGame();
+    resetBoard();
 }
 
 function update() {
     //console.log(board)
-    if(!hasEmptyTile()) {
+    if (!hasEmptyTile() && curr_board == transformed_board) {
         score = 0;
+        document.getElementById("overlay").style.opacity = 1;
     }
-    document.getElementById("score").innerHTML = score
+    document.getElementById("score").innerHTML = score;
 }
 
-function setGame() {
+function resetBoard() {
     // board = [
-    //     [2, 2, 2, 2],
-    //     [2, 2, 2, 2],
-    //     [4, 4, 8, 8],
-    //     [4, 4, 8, 8]
+    //     [2, 4, 8, 16],
+    //     [32, 64, 128, 256],
+    //     [512, 1024, 2048, 4096],
+    //     [8192, 0, 0, 0]
     // ];
 
     board = [
@@ -60,14 +63,15 @@ function setGame() {
         [0, 0, 0, 0],
         [0, 0, 0, 0]
     ]
+    score = 0;
+    curr_board = board;
+    transformed_board = board;
+    //create 2 or 4 to begin the game
+    set_2_or_4()
+    set_2_or_4()
 
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < columns; c++) {}
-    }
-    //create 2 to begin the game
-    setTwo();
-    setTwo();
-
+    document.getElementById("overlay").style.transition = "opacity 1s";
+    document.getElementById("overlay").style.opacity = 0;
 }
 
 function filterZero(row) {
@@ -93,23 +97,28 @@ function slide(row) {
 }
 
 function slideLeft() {
+    curr_board = board;
     for (let r = 0; r < rows; r++) {
         let row = board[r];
         row = slide(row);
         board[r] = row;
     }
+    transformed_board = board;
 }
 
 function slideRight() {
+    curr_board = board;
     for (let r = 0; r < rows; r++) {
         let row = board[r]; //[0, 2, 2, 2]
         row.reverse(); //[2, 2, 2, 0]
         row = slide(row) //[4, 2, 0, 0]
         board[r] = row.reverse(); //[0, 0, 2, 4];
     }
+    transformed_board = board;
 }
 
 function slideUp() {
+    curr_board = board
     for (let c = 0; c < columns; c++) {
         let row = [board[0][c], board[1][c], board[2][c], board[3][c]];
         row = slide(row);
@@ -122,9 +131,11 @@ function slideUp() {
 
         }
     }
+    transformed_board = board;
 }
 
 function slideDown() {
+    curr_board = board;
     for (let c = 0; c < columns; c++) {
         let row = [board[0][c], board[1][c], board[2][c], board[3][c]];
         row.reverse();
@@ -138,19 +149,21 @@ function slideDown() {
             board[r][c] = row[r];
         }
     }
+    transformed_board = board;
 }
 
-function setTwo() {
+function set_2_or_4() {
     if (!hasEmptyTile()) {
         return;
     }
+    let tile = randomInteger(4) % 2 ? 4 : 2;
     let found = false;
     while (!found) {
         //find random row and column to place a 2 in
         let r = Math.floor(Math.random() * rows);
         let c = Math.floor(Math.random() * columns);
         if (board[r][c] == 0) {
-            board[r][c] = 2;
+            board[r][c] = tile;
         }
         break;
     }
@@ -160,20 +173,28 @@ function keyup(key) {
     //console.log(key);
     if (key == 65) {
         slideLeft();
-        setTwo();
+        if(curr_board == transformed_board) {
+            set_2_or_4();
+        }
         console.log(board)
     } else if (key == 68) {
         slideRight();
-        setTwo();
+        if(curr_board == transformed_board) {
+            set_2_or_4();
+        }
         console.log(board)
     } else if (key == 87) {
         slideUp();
-        setTwo();
+        if(curr_board == transformed_board) {
+            set_2_or_4();
+        }
         console.log(board)
 
     } else if (key == 83) {
         slideDown();
-        setTwo();
+        if(curr_board == transformed_board) {
+            set_2_or_4();
+        }
         console.log(board)
     }
     document.getElementById("score").innerText = score;
@@ -200,8 +221,8 @@ function draw() {
             context.fillRect(100 * col, 100 * row, (100 * col) + 100, (100 * row) + 100);
             context.fillStyle = num_colors[board[row][col]];
             context.font = "bold 50px Helvetica";
-            context.textAlign = "center-text";
-            context.fillText(board[row][col], 100 * col, 100 * row + 25, 100);
+            context.textAlign = "center";
+            context.fillText(board[row][col], 100 * col +50, 100 * row + 25, 100);
         }
     }
 }
